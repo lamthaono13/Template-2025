@@ -5,27 +5,72 @@ using UnityEngine;
 
 public static class ServiceLocator
 {
-    private static readonly Dictionary<Type, object> services = new();
+    // Registry map interface/type -> instance
+    private static readonly Dictionary<Type, object> services = new Dictionary<Type, object>();
+    private static readonly object syncRoot = new object();
 
-    public static void Register<T>(T service) where T : class
+    // Register an instance for TService. Overwrite if exists.
+    public static void Register<TService>(TService instance) where TService : class
     {
-        var type = typeof(T);
-        if (service == null)
+        if (instance == null) throw new ArgumentNullException(nameof(instance));
+        var type = typeof(TService);
+        lock (syncRoot)
         {
-            services.Remove(type);    // ⬅ hủy đăng ký
-            return;
+            services[type] = instance;
         }
-        services[type] = service;    // ⬅ đăng ký
     }
 
-    public static void Unregister<T>()
+    // Try register only if not exists
+    public static bool TryRegister<TService>(TService instance) where TService : class
     {
-        services.Remove(typeof(T));
+        if (instance == null) throw new ArgumentNullException(nameof(instance));
+        var type = typeof(TService);
+        lock (syncRoot)
+        {
+            if (services.ContainsKey(type)) return false;
+            services[type] = instance;
+            return true;
+        }
     }
 
-    public static T Get<T>() where T : class
+    // Resolve — will throw if not found
+    public static TService Get<TService>() where TService : class
     {
-        services.TryGetValue(typeof(T), out var s);
-        return s as T;
+        var type = typeof(TService);
+        lock (syncRoot)
+        {
+            if (services.TryGetValue(type, out var obj))
+                return obj as TService;
+        }
+        throw new InvalidOperationException($"Service not registered: {type.FullName}");
+    }
+
+    // Safe resolve — return null if not found
+    public static TService TryGet<TService>() where TService : class
+    {
+        var type = typeof(TService);
+        lock (syncRoot)
+        {
+            if (services.TryGetValue(type, out var obj))
+                return obj as TService;
+        }
+        return null;
+    }
+
+    // Unregister
+    public static bool Unregister<TService>() where TService : class
+    {
+        var type = typeof(TService);
+        lock (syncRoot)
+        {
+            return services.Remove(type);
+        }
+    }
+
+    // Clear all (useful for tests)
+    public static void ClearAll()
+    {
+        lock (syncRoot)
+            services.Clear();
     }
 }

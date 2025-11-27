@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -22,16 +23,19 @@ public class EventBusTest : MonoBehaviour
         
     }
 
+    [Button]
     public void SubscribeTestEvent()
     {
-        action = AdvancedEventBus.Subscribe<TestEvent>((a) => { });
+        action = AdvancedEventBus.Subscribe<TestEvent>((a) => { Debug.LogError(a.message); });
     }
 
+    [Button]
     public void PublishTestEvent()
     {
         AdvancedEventBus.Publish(new TestEvent { message = testString });
     }
 
+    [Button]
     public void UnsubscribeTestEvent()
     {
         action?.Invoke();
