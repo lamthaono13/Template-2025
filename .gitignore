@@ -1,0 +1,9 @@
+﻿*.csproj
+*.sln
+*.vsconfig
+Template_v2025/UserSettings
+Template_v2025/Temp
+Template_v2025/obj
+Template_v2025/Logs
+Template_v2025/Library
+Template_v2025/.vs
