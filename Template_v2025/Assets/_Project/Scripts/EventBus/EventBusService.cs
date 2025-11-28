@@ -5,12 +5,12 @@ using UnityEngine;
 /// MonoBehaviour wrapper that instantiates a singleton EventBus and registers it with ServiceLocator.
 /// Attach this to a GameObject in your initial scene (or PoolRoot/Bootstrapper).
 /// </summary>
-public class EventBusService : MonoBehaviour
+public class EventBusService : MonoBehaviour, IInitializable
 {
     // the instance created for this running app; kept for convenience if you want to access directly
     public EventBus Instance { get; private set; }
 
-    void Awake()
+    public void Initialize()
     {
         if (Instance == null)
         {
