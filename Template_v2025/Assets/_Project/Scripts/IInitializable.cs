@@ -1,5 +1,5 @@
 // IInitializable.cs
 public interface IInitializable
 {
-    void Initialize();
+    public void Initialize();
 }
