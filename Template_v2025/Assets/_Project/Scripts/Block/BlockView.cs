@@ -31,4 +31,14 @@ public class BlockView : MonoBehaviour
     {
         return spritesColors[(int)c];
     }
+
+    public void ActiveShine(bool isTrue)
+    {
+        objShine.gameObject.SetActive(isTrue);
+    }
+
+    public void ActiveBrick(bool isTrue)
+    {
+        objBrick.gameObject.SetActive(isTrue);
+    }
 }

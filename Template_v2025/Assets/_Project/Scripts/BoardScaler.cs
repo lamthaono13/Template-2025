@@ -42,7 +42,7 @@ public class BoardScaler : MonoBehaviour
 
         float targetHeight = worldHeight * boardHeightRatio;
         float heightScale = targetHeight / spriteSize.y;
-
+            
         float maxAllowedWidth = Mathf.Max(0.1f, worldWidth - horizontalPadding);
         float widthScale = maxAllowedWidth / spriteSize.x;
 

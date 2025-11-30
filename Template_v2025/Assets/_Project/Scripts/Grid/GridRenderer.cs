@@ -3,22 +3,35 @@ using UnityEngine;
 
 public class GridRenderer : MonoBehaviour
 {
-    [Tooltip("Prefab for a single block (must have SpriteRenderer + BlockView)")]
     public GameObject blockPrefab;
 
-    [Tooltip("Parent transform where instantiated blocks will be placed. Should be child of Board.")]
     public Transform root;
 
     // set by BoardScaler at runtime
     //[HideInInspector]
     public float cellSize = 1f;
 
-    // scale applied to block instances (computed by BoardScaler)
-    //[HideInInspector]
+
     public float blockLocalScale = 1f;
 
     private Stack<GameObject> pool = new Stack<GameObject>();
-    private GameObject[,] placed = new GameObject[GridController.Width, GridController.Height];
+    private BlockView[,] placed = new BlockView[GridController.Width, GridController.Height];
+
+    private void Start()
+    {
+        for (int x = 0; x < GridController.Width; x++)
+        {
+            for (int y = 0; y < GridController.Height; y++)
+            {
+                var go = Instantiate(blockPrefab, root);
+                go.transform.localScale = Vector3.one * blockLocalScale;
+
+                go.gameObject.SetActive(false);
+
+                pool.Push(go);
+            }
+        }
+    }
 
     private GameObject GetFromPool()
     {
@@ -48,7 +61,7 @@ public class GridRenderer : MonoBehaviour
             {
                 if (placed[x, y] != null)
                 {
-                    Recycle(placed[x, y]);
+                    Recycle(placed[x, y].gameObject);
                     placed[x, y] = null;
                 }
             }
@@ -68,7 +81,7 @@ public class GridRenderer : MonoBehaviour
                 {
                     if (cur != null)
                     {
-                        Recycle(cur);
+                        Recycle(cur.gameObject);
                         placed[x, y] = null;
                     }
                 }
@@ -81,7 +94,7 @@ public class GridRenderer : MonoBehaviour
                         var view = go.GetComponent<BlockView>();
                         view.SetColor(cell.color);
                         view.SetAlpha(1f);
-                        placed[x, y] = go;
+                        placed[x, y] = view;
                     }
                     else
                     {
@@ -94,7 +107,6 @@ public class GridRenderer : MonoBehaviour
         }
     }
 
-    // convert grid coords to local position relative to root
     public Vector3 GridToLocal(int x, int y)
     {
     float boardWidth = cellSize * GridController.Width;
@@ -110,9 +122,7 @@ public class GridRenderer : MonoBehaviour
     return new Vector3(px, py, 0f);
     }
 
-    /// <summary>
-    /// Convert a world position to grid indices (ox,oy). Returns true if inside board bounds.
-    /// </summary>
+
     public bool WorldToGrid(Vector3 worldPos, out int outX, out int outY)
     {
         outX = -1;

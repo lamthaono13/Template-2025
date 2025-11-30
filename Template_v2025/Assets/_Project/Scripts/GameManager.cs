@@ -12,7 +12,7 @@ public class GameManager : MonoBehaviour
     private void Start()
     {
         grid.OnGridChanged += OnGridChanged;
-        grid.OnRowsCleared += OnRowsCleared;
+        grid.OnCleared += OnCleared;
 
         if (trayManager != null) trayManager.spawner = spawner;
 
@@ -23,7 +23,7 @@ public class GameManager : MonoBehaviour
     private void OnDestroy()
     {
         grid.OnGridChanged -= OnGridChanged;
-        grid.OnRowsCleared -= OnRowsCleared;
+        grid.OnCleared -= OnCleared;
     }
 
     private void OnGridChanged()
@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
         if (gridRenderer != null) gridRenderer.ApplySnapshot(snap);
     }
 
-    private void OnRowsCleared(int count)
+    private void OnCleared(int count)
     {
         Debug.Log($"Cleared {count} lines");
     }

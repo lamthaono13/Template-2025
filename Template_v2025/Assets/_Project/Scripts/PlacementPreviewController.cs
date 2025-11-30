@@ -11,6 +11,22 @@ public class PlacementPreviewController : MonoBehaviour
     private List<GameObject> spawned = new List<GameObject>();
     private Stack<GameObject> pool = new Stack<GameObject>();
 
+    private void Start()
+    {
+        for (int x = 0; x < GridController.Width; x++)
+        {
+            for (int y = 0; y < GridController.Height; y++)
+            {
+                var go = Instantiate(blockPrefab, previewRoot);
+                go.transform.localScale = Vector3.one * gridRenderer.blockLocalScale;
+
+                go.gameObject.SetActive(false);
+
+                pool.Push(go);
+            }
+        }
+    }
+
     private GameObject GetPreview()
     {
         if (pool.Count > 0)

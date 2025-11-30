@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class WorldDragController : MonoBehaviour
 {
-    public Camera cam;
+    [SerializeField] private Camera cam;
     public TrayManager trayManager;
     public PlacementPreviewController preview;
     public GameManager gameManager;
@@ -118,6 +118,9 @@ public class WorldDragController : MonoBehaviour
         ContinueDragImmediate(world);
     }
 
+    private int prevOx = -1;
+    private int prevOy = -1;
+
     private void ContinueDragImmediate(Vector3 world)
     {
         if (!isDragging || draggingVisual == null) return;
@@ -126,6 +129,11 @@ public class WorldDragController : MonoBehaviour
 
         int ox, oy;
         bool inside = gridRenderer.WorldToGrid(draggingVisual.transform.position, out ox, out oy);
+
+        if(ox == prevOx && oy == prevOy) return;
+
+        prevOx = ox;
+        prevOy = oy;
 
         var model = trayManager.GetModelAt(draggingSlotIndex);
         if (inside && model != null)
@@ -141,7 +149,7 @@ public class WorldDragController : MonoBehaviour
                 preview.ClearPreview();
             }
 
-            preview.ShowPreview(model.shape, ox, oy, canPlace, model.color);
+            //preview.ShowPreview(model.shape, ox, oy, canPlace, model.color);
         }
         else
         {

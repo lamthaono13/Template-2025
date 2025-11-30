@@ -9,7 +9,7 @@ public class GridController : MonoBehaviour
 
     private BlockCell[,] cells = new BlockCell[Width, Height];
 
-    public event Action<int> OnRowsCleared;
+    public event Action<int> OnCleared;
     public event Action OnGridChanged;
 
     private void Awake()
@@ -67,7 +67,7 @@ public class GridController : MonoBehaviour
         int cleared = ClearFullLines();
 
         if (cleared > 0)
-            OnRowsCleared?.Invoke(cleared);
+            OnCleared?.Invoke(cleared);
 
         OnGridChanged?.Invoke();
     }
