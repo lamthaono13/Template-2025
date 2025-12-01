@@ -49,36 +49,4 @@ public class GameManager : MonoBehaviour
         //grid.OnGridChanged -= OnGridChanged;
         //grid.OnCleared -= OnCleared;
     }
-
-    private void OnGridChanged()
-    {
-        //var snap = grid.GetCellsSnapshot();
-        //if (gridRenderer != null) gridRenderer.ApplySnapshot(snap);
-    }
-
-    private void OnCleared(int count)
-    {
-        Debug.Log($"Cleared {count} lines");
-    }
-
-    public BlockModel GetCurrentModelAt(int idx)
-    {
-        if (trayManager == null) return null;
-        return trayManager.GetModelAt(idx);
-    }
-
-    public void TryPlaceFromUI(int idx, int ox, int oy)
-    {
-        var model = GetCurrentModelAt(idx);
-        if (model == null) return;
-
-        if (grid.CanPlaceShape(model.shape, ox, oy))
-        {
-            grid.PlaceShape(model.shape, model.color, ox, oy);
-        }
-        else
-        {
-            Debug.Log("GameManager: Cannot place shape at provided grid coords.");
-        }
-    }
 }

@@ -144,8 +144,13 @@ public class GridController : MonoBehaviour
     {
         var snap = new BlockCell[Width, Height];
         for (int x = 0; x < Width; x++)
+        {
             for (int y = 0; y < Height; y++)
+            {
                 snap[x, y] = cells[x, y] == null ? null : new BlockCell { color = cells[x, y].color };
+            }
+        }
+
         return snap;
     }
 }

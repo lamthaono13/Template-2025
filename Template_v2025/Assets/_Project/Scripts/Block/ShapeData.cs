@@ -25,4 +25,13 @@ public class ShapeData : ScriptableObject
             return cellList.ToArray();
         }
     }
+
+    public int GetHeight()
+    {
+        return BlockShape.height;
+    }
+    public int GetWidth()
+    {
+        return BlockShape.width;
+    }
 }

@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 
 public class WorldDragController : MonoBehaviour
@@ -10,9 +11,11 @@ public class WorldDragController : MonoBehaviour
 
     private bool isDragging = false;
     private GameObject draggingVisual = null;
-    private int draggingSlotIndex = -1;
     private Vector3 dragOffset = Vector3.zero;
+    [SerializeField]private Vector3 dragOffsetDefault = Vector3.zero;
     public int dragSortingOrder = 1000;
+
+    private Tray currTray;
 
     private bool canDrag = false;
 
@@ -59,69 +62,49 @@ public class WorldDragController : MonoBehaviour
         RaycastHit2D hit = Physics2D.Raycast(p, Vector2.zero, 0f);
         if (hit.collider == null) return;
 
-        GameObject hitGo = hit.collider.gameObject;
-        int idx = FindSlotIndexByInstance(hitGo);
-        if (idx == -1) return;
-
-        BeginDragForSlot(idx, hitGo, world);
-    }
-
-    private int FindSlotIndexByInstance(GameObject instance)
-    {
-        // look for parent container named TrayShape_i
-        Transform t = instance.transform;
-        while (t != null)
+        if(!hit.collider.CompareTag("Tray"))
         {
-            if (t.name.StartsWith("TrayShape_"))
-            {
-                string s = t.name.Replace("TrayShape_", "");
-                if (int.TryParse(s, out int parsed)) return parsed;
-            }
-            t = t.parent;
+            return;
         }
 
-        for (int i = 0; i < trayManager.trays.Length; i++)
+        currTray = hit.collider.GetComponent<Tray>();
+
+        if (!currTray.CanGet())
         {
-            if (trayManager.trays[i] == null) continue;
-            if (Vector3.Distance(instance.transform.position, trayManager.trays[i].transform.position) < 0.05f) return i;
+            return;
         }
 
-        return -1;
+        BeginDragForSlot(world);
     }
 
 
-    private void BeginDragForSlot(int slotIndex, GameObject slotInstance, Vector3 worldPos)
+    private void BeginDragForSlot(Vector3 worldPos)
     {
         if (isDragging) return;
 
-        var model = trayManager.GetModelAt(slotIndex);
+        var model = currTray.GetCurrentModel();
         if (model == null) return;
 
-        var container = trayManager.slotContainers[slotIndex];
+        var container = currTray.GetContainer();
         if (container == null)
         {
-            Debug.LogWarning("[WorldDragController] slot container missing for index " + slotIndex);
             return;
         }
 
         isDragging = true;
-        draggingSlotIndex = slotIndex;
+
 
         // clone the whole container
-        draggingVisual = Instantiate(container, container.transform.position, container.transform.rotation);
-        draggingVisual.name = "DraggingVisual";
-        draggingVisual.transform.SetParent(null, true);
+        draggingVisual = container;
 
-        // disable colliders on clone and raise sorting order
-        foreach (var c in draggingVisual.GetComponentsInChildren<Collider2D>()) c.enabled = false;
-        foreach (var sr in draggingVisual.GetComponentsInChildren<SpriteRenderer>()) sr.sortingOrder = dragSortingOrder;
-
-        // hide original container
-        container.SetActive(false);
 
         dragOffset = draggingVisual.transform.position - worldPos;
 
-        ContinueDragImmediate(worldPos);
+        Vector3 initialPos = new Vector3(worldPos.x + dragOffset.x + dragOffsetDefault.x, worldPos.y + dragOffset.y + dragOffsetDefault.y, draggingVisual.transform.position.z);
+
+        container.transform.DOMove(initialPos, 0.2f).SetEase(DG.Tweening.Ease.Linear);
+
+        //ContinueDragImmediate(worldPos);
     }
 
     private void ContinueDrag(Vector3 screenPos)
@@ -137,7 +120,7 @@ public class WorldDragController : MonoBehaviour
     {
         if (!isDragging || draggingVisual == null) return;
 
-        draggingVisual.transform.position = new Vector3(world.x + dragOffset.x, world.y + dragOffset.y, draggingVisual.transform.position.z);
+        draggingVisual.transform.position = new Vector3(world.x + dragOffset.x + dragOffsetDefault.x, world.y + dragOffset.y + dragOffsetDefault.y, draggingVisual.transform.position.z);
 
         int ox, oy;
         bool inside = gameManager.Grid.GridRenderer.WorldToGrid(draggingVisual.transform.position, out ox, out oy);
@@ -147,7 +130,7 @@ public class WorldDragController : MonoBehaviour
         prevOx = ox;
         prevOy = oy;
 
-        var model = trayManager.GetModelAt(draggingSlotIndex);
+        var model = currTray.GetCurrentModel();
         if (inside && model != null)
         {
             bool canPlace = gameManager.Grid.CanPlaceShape(model.shape, ox, oy);
@@ -181,20 +164,37 @@ public class WorldDragController : MonoBehaviour
 
         preview.ClearPreview();
 
-        var model = trayManager.GetModelAt(draggingSlotIndex);
+        var model = currTray.GetCurrentModel();
 
         if (inside && model != null && gameManager.Grid.CanPlaceShape(model.shape, ox, oy))
         {
-            gameManager.TryPlaceFromUI(draggingSlotIndex, ox, oy);
-            trayManager.RemoveSlotAndRefill(draggingSlotIndex);
+            //gameManager.TryPlaceFromUI(model, ox, oy);
+
+
+            if (model == null) return;
+
+            if (gameManager.Grid.CanPlaceShape(model.shape, ox, oy))
+            {
+                gameManager.Grid.PlaceShape(model.shape, model.color, ox, oy);
+
+                currTray.ReturnToTray(false);
+
+                trayManager.RemoveSlotAndRefill(currTray, true);
+            }
+            else
+            {
+                currTray.ReturnToTray(true);
+
+                trayManager.RemoveSlotAndRefill(currTray, false);
+            }
         }
         else
         {
-            trayManager.RefreshVisuals();
+            currTray.ReturnToTray(true);
         }
 
-        if (draggingVisual != null) Destroy(draggingVisual);
+        draggingVisual = null;
         isDragging = false;
-        draggingSlotIndex = -1;
+        currTray = null;
     }
 }

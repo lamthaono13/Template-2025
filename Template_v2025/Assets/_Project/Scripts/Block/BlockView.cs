@@ -41,4 +41,9 @@ public class BlockView : MonoBehaviour
     {
         objBrick.gameObject.SetActive(isTrue);
     }
+
+    public void SetOrderLayer(int order)
+    {
+        sr.sortingOrder = order;
+    }
 }

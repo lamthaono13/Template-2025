@@ -14,7 +14,6 @@ public class GridRenderer : MonoBehaviour
 
     public float blockLocalScale = 1f;
 
-    private Stack<GameObject> pool = new Stack<GameObject>();
     private BlockView[,] placed = new BlockView[GridController.Width, GridController.Height];
 
     private int width;
@@ -22,18 +21,7 @@ public class GridRenderer : MonoBehaviour
 
     private void Start()
     {
-        //for (int x = 0; x < GridController.Width; x++)
-        //{
-        //    for (int y = 0; y < GridController.Height; y++)
-        //    {
-        //        var go = Instantiate(blockPrefab, root);
-        //        go.transform.localScale = Vector3.one * blockLocalScale;
 
-        //        go.gameObject.SetActive(false);
-
-        //        pool.Push(go);
-        //    }
-        //}
     }
 
     public void Init(int _width, int _height)
@@ -46,14 +34,17 @@ public class GridRenderer : MonoBehaviour
     {
         var go = GameManager.PoolManager.GetPool<BlockView>(root);
 
+        go.SetOrderLayer(0);
+
+        go.SetAlpha(1f);
+
         go.transform.localScale = Vector3.one * blockLocalScale;
         return go;
     }
 
     private void Recycle(GameObject g)
     {
-        g.SetActive(false);
-        pool.Push(g);
+        GameManager.PoolManager.TakeToPool<BlockView>(g);
     }
 
     public void ClearAll()

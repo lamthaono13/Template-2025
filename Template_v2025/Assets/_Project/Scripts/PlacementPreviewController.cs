@@ -3,52 +3,35 @@ using UnityEngine;
 
 public class PlacementPreviewController : MonoBehaviour
 {
-    public GameObject blockPrefab;
-    public Transform previewRoot;
+    [SerializeField] private Transform previewRoot;
 
-    public GridRenderer gridRenderer;
+    [SerializeField] private GameManager gameManager;
 
-    private List<GameObject> spawned = new List<GameObject>();
-    private Stack<GameObject> pool = new Stack<GameObject>();
+    private GridRenderer gridRenderer;
+
+    private List<BlockView> spawned = new List<BlockView>();
 
     private void Start()
     {
-        for (int x = 0; x < GridController.Width; x++)
-        {
-            for (int y = 0; y < GridController.Height; y++)
-            {
-                var go = Instantiate(blockPrefab, previewRoot);
-                go.transform.localScale = Vector3.one * gridRenderer.blockLocalScale;
 
-                go.gameObject.SetActive(false);
-
-                pool.Push(go);
-            }
-        }
     }
 
     public void Init()
     {
-
+        gridRenderer = gameManager.Grid.GridRenderer;
     }
 
-    private GameObject GetPreview()
+    private BlockView GetPreview()
     {
-        if (pool.Count > 0)
-        {
-            var g = pool.Pop();
-            g.SetActive(true);
-            return g;
-        }
-        var go = Instantiate(blockPrefab, previewRoot);
+        var go = gameManager.PoolManager.GetPool<BlockView>(previewRoot);
+        go.SetOrderLayer(0);
         go.transform.localScale = Vector3.one * gridRenderer.blockLocalScale;
         return go;
     }
 
-    private void RecyclePreview(GameObject g)
+    private void RecyclePreview(BlockView g)
     {
-        g.SetActive(false);
-        pool.Push(g);
+
     }
 
     public void ShowPreview(ShapeData shape, int ox, int oy, bool canPlace, BlockColor color)
@@ -69,13 +52,12 @@ public class PlacementPreviewController : MonoBehaviour
             if (x < 0 || y < 0 || x >= GridController.Width || y >= GridController.Height)
                 continue;
 
-            var go = GetPreview();
-            go.transform.SetParent(gridRenderer.root, false);
-            go.transform.localPosition = gridRenderer.GridToLocal(x, y);
-            var view = go.GetComponent<BlockView>();
+            var view = GetPreview();
+            view.transform.SetParent(gridRenderer.root, false);
+            view.transform.localPosition = gridRenderer.GridToLocal(x, y);
             view.SetColor(color);
             view.SetAlpha(canPlace ? 0.6f : 0.35f);
-            spawned.Add(go);
+            spawned.Add(view);
         }
     }
 
@@ -83,7 +65,7 @@ public class PlacementPreviewController : MonoBehaviour
     {
         foreach (var g in spawned)
         {
-            if (g != null) RecyclePreview(g);
+            if (g != null) gameManager.PoolManager.TakeToPool<BlockView>(g.gameObject);
         }
         spawned.Clear();
     }
