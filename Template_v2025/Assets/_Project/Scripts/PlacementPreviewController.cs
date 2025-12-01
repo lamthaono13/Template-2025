@@ -27,6 +27,11 @@ public class PlacementPreviewController : MonoBehaviour
         }
     }
 
+    public void Init()
+    {
+
+    }
+
     private GameObject GetPreview()
     {
         if (pool.Count > 0)

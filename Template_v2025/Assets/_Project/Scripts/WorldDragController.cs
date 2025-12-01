@@ -3,10 +3,10 @@ using UnityEngine;
 public class WorldDragController : MonoBehaviour
 {
     [SerializeField] private Camera cam;
-    public TrayManager trayManager;
-    public PlacementPreviewController preview;
-    public GameManager gameManager;
-    public GridRenderer gridRenderer;
+    private TrayManager trayManager;
+    private PlacementPreviewController preview;
+    [SerializeField] private GameManager gameManager;
+    private GridRenderer gridRenderer;
 
     private bool isDragging = false;
     private GameObject draggingVisual = null;
@@ -14,13 +14,29 @@ public class WorldDragController : MonoBehaviour
     private Vector3 dragOffset = Vector3.zero;
     public int dragSortingOrder = 1000;
 
+    private bool canDrag = false;
+
     private void Awake()
     {
         if (cam == null) cam = Camera.main;
     }
 
+    public void Init()
+    {
+        canDrag = true;
+
+        trayManager = gameManager.TrayManager;
+        preview = gameManager.Preview;
+        gridRenderer = gameManager.Grid.GridRenderer;
+    }
+
     private void Update()
     {
+        if (!canDrag)
+        {
+            return;
+        }
+
         if (Input.touchCount > 0)
         {
             var t = Input.GetTouch(0);
@@ -64,14 +80,10 @@ public class WorldDragController : MonoBehaviour
             t = t.parent;
         }
 
-        // fallback position match
-        if (trayManager != null)
+        for (int i = 0; i < trayManager.trays.Length; i++)
         {
-            for (int i = 0; i < trayManager.slotTransforms.Length; i++)
-            {
-                if (trayManager.slotTransforms[i] == null) continue;
-                if (Vector3.Distance(instance.transform.position, trayManager.slotTransforms[i].position) < 0.05f) return i;
-            }
+            if (trayManager.trays[i] == null) continue;
+            if (Vector3.Distance(instance.transform.position, trayManager.trays[i].transform.position) < 0.05f) return i;
         }
 
         return -1;
@@ -128,7 +140,7 @@ public class WorldDragController : MonoBehaviour
         draggingVisual.transform.position = new Vector3(world.x + dragOffset.x, world.y + dragOffset.y, draggingVisual.transform.position.z);
 
         int ox, oy;
-        bool inside = gridRenderer.WorldToGrid(draggingVisual.transform.position, out ox, out oy);
+        bool inside = gameManager.Grid.GridRenderer.WorldToGrid(draggingVisual.transform.position, out ox, out oy);
 
         if(ox == prevOx && oy == prevOy) return;
 
@@ -138,7 +150,7 @@ public class WorldDragController : MonoBehaviour
         var model = trayManager.GetModelAt(draggingSlotIndex);
         if (inside && model != null)
         {
-            bool canPlace = gameManager.grid.CanPlaceShape(model.shape, ox, oy);
+            bool canPlace = gameManager.Grid.CanPlaceShape(model.shape, ox, oy);
 
             if (canPlace)
             {
@@ -171,7 +183,7 @@ public class WorldDragController : MonoBehaviour
 
         var model = trayManager.GetModelAt(draggingSlotIndex);
 
-        if (inside && model != null && gameManager.grid.CanPlaceShape(model.shape, ox, oy))
+        if (inside && model != null && gameManager.Grid.CanPlaceShape(model.shape, ox, oy))
         {
             gameManager.TryPlaceFromUI(draggingSlotIndex, ox, oy);
             trayManager.RemoveSlotAndRefill(draggingSlotIndex);

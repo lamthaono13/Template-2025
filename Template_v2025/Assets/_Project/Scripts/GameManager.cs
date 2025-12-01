@@ -1,35 +1,59 @@
-using UnityEngine;
+using Sirenix.OdinInspector;
 using System.Linq;
+using UnityEngine;
 
 public class GameManager : MonoBehaviour
 {
-    public GridController grid;
-    public BlockSpawner spawner;
-    public TrayManager trayManager;
-    public PlacementPreviewController preview;
-    public GridRenderer gridRenderer;
+    [SerializeField] private GridController grid;
+    [SerializeField] private BlockSpawner spawner;
+    [SerializeField] private TrayManager trayManager;
+    [SerializeField] private PlacementPreviewController preview;
+    [SerializeField] private PoolManager poolManager;
+    [SerializeField] private WorldDragController worldDragController;
+    [SerializeField] private GameEventManager gameEventManager;
+
+    public PoolManager PoolManager => poolManager;
+    public GridController Grid => grid;
+    public BlockSpawner Spawner => spawner;
+
+    public PlacementPreviewController Preview => preview;
+
+    public TrayManager TrayManager => trayManager;
 
     private void Start()
     {
-        grid.OnGridChanged += OnGridChanged;
-        grid.OnCleared += OnCleared;
+        // init
 
-        if (trayManager != null) trayManager.spawner = spawner;
+        poolManager.Init();
 
-        if (trayManager != null && (trayManager.currentTrio == null || trayManager.currentTrio.Length == 0))
-            trayManager.GenerateInitial();
+        grid.Init();
+
+        spawner.Init();
+
+        trayManager.Init();
+
+        preview.Init();
+
+        worldDragController.Init();
+
+        gameEventManager.Init();
+
+        // events
+
+
+        //grid.OnCleared += OnCleared;
     }
 
     private void OnDestroy()
     {
-        grid.OnGridChanged -= OnGridChanged;
-        grid.OnCleared -= OnCleared;
+        //grid.OnGridChanged -= OnGridChanged;
+        //grid.OnCleared -= OnCleared;
     }
 
     private void OnGridChanged()
     {
-        var snap = grid.GetCellsSnapshot();
-        if (gridRenderer != null) gridRenderer.ApplySnapshot(snap);
+        //var snap = grid.GetCellsSnapshot();
+        //if (gridRenderer != null) gridRenderer.ApplySnapshot(snap);
     }
 
     private void OnCleared(int count)

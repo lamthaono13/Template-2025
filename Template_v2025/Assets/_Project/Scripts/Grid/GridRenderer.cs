@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class GridRenderer : MonoBehaviour
 {
-    public GameObject blockPrefab;
+    public GameManager GameManager;
 
     public Transform root;
 
@@ -17,32 +17,35 @@ public class GridRenderer : MonoBehaviour
     private Stack<GameObject> pool = new Stack<GameObject>();
     private BlockView[,] placed = new BlockView[GridController.Width, GridController.Height];
 
+    private int width;
+    private int height;
+
     private void Start()
     {
-        for (int x = 0; x < GridController.Width; x++)
-        {
-            for (int y = 0; y < GridController.Height; y++)
-            {
-                var go = Instantiate(blockPrefab, root);
-                go.transform.localScale = Vector3.one * blockLocalScale;
+        //for (int x = 0; x < GridController.Width; x++)
+        //{
+        //    for (int y = 0; y < GridController.Height; y++)
+        //    {
+        //        var go = Instantiate(blockPrefab, root);
+        //        go.transform.localScale = Vector3.one * blockLocalScale;
 
-                go.gameObject.SetActive(false);
+        //        go.gameObject.SetActive(false);
 
-                pool.Push(go);
-            }
-        }
+        //        pool.Push(go);
+        //    }
+        //}
     }
 
-    private GameObject GetFromPool()
+    public void Init(int _width, int _height)
     {
-        if (pool.Count > 0)
-        {
-            var g = pool.Pop();
-            g.SetActive(true);
-            return g;
-        }
+        width = _width;
+        height = _height;
+    }
 
-        var go = Instantiate(blockPrefab, root);
+    private BlockView GetFromPool()
+    {
+        var go = GameManager.PoolManager.GetPool<BlockView>(root);
+
         go.transform.localScale = Vector3.one * blockLocalScale;
         return go;
     }
@@ -55,9 +58,9 @@ public class GridRenderer : MonoBehaviour
 
     public void ClearAll()
     {
-        for (int x = 0; x < GridController.Width; x++)
+        for (int x = 0; x < width; x++)
         {
-            for (int y = 0; y < GridController.Height; y++)
+            for (int y = 0; y < height; y++)
             {
                 if (placed[x, y] != null)
                 {
@@ -89,16 +92,16 @@ public class GridRenderer : MonoBehaviour
                 {
                     if (cur == null)
                     {
-                        var go = GetFromPool();
-                        go.transform.localPosition = GridToLocal(x, y);
-                        var view = go.GetComponent<BlockView>();
+                        var view = GetFromPool();
+                        view.transform.localPosition = GridToLocal(x, y);
+
                         view.SetColor(cell.color);
                         view.SetAlpha(1f);
                         placed[x, y] = view;
                     }
                     else
                     {
-                        var view = cur.GetComponent<BlockView>();
+                        var view = cur;
                         view.SetColor(cell.color);
                         view.SetAlpha(1f);
                     }
@@ -109,17 +112,17 @@ public class GridRenderer : MonoBehaviour
 
     public Vector3 GridToLocal(int x, int y)
     {
-    float boardWidth = cellSize * GridController.Width;
-    float boardHeight = cellSize * GridController.Height;
+        float boardWidth = cellSize * width;
+        float boardHeight = cellSize * height;
 
-    // center-based
-    float startX = -boardWidth / 2f + cellSize / 2f;
-    float startY = -boardHeight / 2f + cellSize / 2f;
+        // center-based
+        float startX = -boardWidth / 2f + cellSize / 2f;
+        float startY = -boardHeight / 2f + cellSize / 2f;
 
-    float px = startX + x * cellSize;
-    float py = startY + y * cellSize;
+        float px = startX + x * cellSize;
+        float py = startY + y * cellSize;
 
-    return new Vector3(px, py, 0f);
+        return new Vector3(px, py, 0f);
     }
 
 
@@ -137,8 +140,8 @@ public class GridRenderer : MonoBehaviour
         // convert world to local (root is child of Board)
         Vector3 local = root.InverseTransformPoint(worldPos);
 
-        float boardWidth = cellSize * GridController.Width;
-        float boardHeight = cellSize * GridController.Height;
+        float boardWidth = cellSize * width;
+        float boardHeight = cellSize * height;
 
         float startX = -boardWidth / 2f + cellSize / 2f;
         float startY = -boardHeight / 2f + cellSize / 2f;
@@ -150,7 +153,7 @@ public class GridRenderer : MonoBehaviour
         int ix = Mathf.RoundToInt(fx);
         int iy = Mathf.RoundToInt(fy);
 
-        if (ix < 0 || ix >= GridController.Width || iy < 0 || iy >= GridController.Height)
+        if (ix < 0 || ix >= width || iy < 0 || iy >= height)
             return false;
 
         outX = ix;
@@ -163,8 +166,8 @@ public class GridRenderer : MonoBehaviour
         if (root == null) return new Rect();
 
         Vector3 worldCenter = root.transform.position;
-        float boardWorldWidth = cellSize * GridController.Width * root.lossyScale.x;
-        float boardWorldHeight = cellSize * GridController.Height * root.lossyScale.y;
+        float boardWorldWidth = cellSize * width * root.lossyScale.x;
+        float boardWorldHeight = cellSize * height * root.lossyScale.y;
 
         float left = worldCenter.x - boardWorldWidth / 2f;
         float bottom = worldCenter.y - boardWorldHeight / 2f;

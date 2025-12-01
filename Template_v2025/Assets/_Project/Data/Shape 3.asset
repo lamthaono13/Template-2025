@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 465bbbae681fc8d4680e7ef339d9d339, type: 3}
   m_Name: Shape 3
   m_EditorClassIdentifier: 
-  cells:
-  - {x: 0, y: 0}
-  - {x: 1, y: 0}
-  - {x: 0, y: 1}
+  BlockShape:
+    _width: 2
+    _height: 1
+    _shape: 0101
   shapeName: 3

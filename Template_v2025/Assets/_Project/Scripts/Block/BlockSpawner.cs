@@ -14,6 +14,11 @@ public class BlockSpawner : MonoBehaviour
 
     private System.Random rng = new System.Random();
 
+    public void Init()
+    {
+
+    }
+
     public BlockModel[] GenerateThree(GridController grid)
     {
         if (shapePool == null || shapePool.Length == 0)

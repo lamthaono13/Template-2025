@@ -12,9 +12,26 @@ public class GridController : MonoBehaviour
     public event Action<int> OnCleared;
     public event Action OnGridChanged;
 
+    [SerializeField] private GridRenderer gridRenderer;
+
+    public GridRenderer GridRenderer => gridRenderer;
+
     private void Awake()
     {
+
+    }
+
+    public void Init()
+    {
         ClearGrid();
+
+        gridRenderer.Init(Width, Height);
+
+        OnGridChanged += () =>
+        {
+            var snap = GetCellsSnapshot();
+            gridRenderer.ApplySnapshot(snap);
+        };
     }
 
     public void ClearGrid()
