@@ -29,6 +29,7 @@ public class Tray : MonoBehaviour, IInteractTray
         EventBus.AddListener<StartDragEvent>(OnStartDrag);
         EventBus.AddListener<ContinueDragEvent>(OnContinueDrag);
         EventBus.AddListener<EndDragEvent>(OnEndDrag);
+        EventBus.AddListener<EventChangedGrid>(OnGridChange);
     }
 
     void OnDestroy()
@@ -36,6 +37,7 @@ public class Tray : MonoBehaviour, IInteractTray
         EventBus.RemoveListener<StartDragEvent>(OnStartDrag);
         EventBus.RemoveListener<ContinueDragEvent>(OnContinueDrag);
         EventBus.RemoveListener<EndDragEvent>(OnEndDrag);
+        EventBus.RemoveListener<EventChangedGrid>(OnGridChange);
     }
 
     private void OnStartDrag(StartDragEvent startDragEvent)
@@ -103,7 +105,7 @@ public class Tray : MonoBehaviour, IInteractTray
         return container.gameObject;
     }
 
-    public void Reload(BlockModel blockModel)
+    public void Reload(BlockModel blockModel, DataGrid dataGrid = null)
     {
         currentModel = blockModel;
 
@@ -130,6 +132,7 @@ public class Tray : MonoBehaviour, IInteractTray
                 float py = startY + y * cellSize;
 
                 //view.transform.localPosition = gameManager.Grid.GridRenderer.GridToLocal(x, y);
+
                 view.transform.localPosition = new Vector3(px, py, 0);
                 view.SetColor(blockModel.color);
 
@@ -140,7 +143,11 @@ public class Tray : MonoBehaviour, IInteractTray
                 spawned.Add(view);
             }
 
-            offSetTray = new Vector2( startX, startY);
+            offSetTray = new Vector2(startX, startY);
+
+            container.transform.localScale = Vector3.zero;
+
+            container.transform.DOScale(Vector3.one, 0.25f).SetEase(DG.Tweening.Ease.OutBack);
         }
         else
         {                    
@@ -151,6 +158,8 @@ public class Tray : MonoBehaviour, IInteractTray
 
             spawned.Clear();
         }
+
+        SetState(dataGrid);
     }
 
     public void OnGetTray()
@@ -216,6 +225,62 @@ public class Tray : MonoBehaviour, IInteractTray
     public bool CanGetTray()
     {
         return canGet && currentModel != null;
+    }
+
+    private void OnGridChange(EventChangedGrid eventChangedGrid)
+    {
+        //Debug.LogError("!111");
+
+        SetState(eventChangedGrid.dataGrid);
+
+        //Debug.LogError("!333");
+    }
+
+    public void SetState(DataGrid dataGrid)
+    {
+        if (GetCurrentModel() == null)
+        {
+            return;
+        }
+
+        bool canPlace = GameHelper.HasAnyValidPlacement(GetCurrentModel().shape, dataGrid);
+
+        SetCanGet(canPlace);
+
+        if (!canPlace)
+        {
+            if (spawned != null)
+            {
+                for (int i = 0; i < spawned.Count; i++)
+                {
+                    if (spawned[i].CheckIsBrick())
+                    {
+                        continue;
+                    }
+
+                    spawned[i].ActiveBrick(true);
+
+                    spawned[i].SetAlphaBrick(0);
+
+                    int id = i;
+
+                    DOTween.To((x) =>
+                    {
+                        spawned[id].SetAlphaBrick(x);
+
+                    }, 0f, 1f, 0.5f);
+                }
+            }
+        }
+        else
+        {
+            for (int i = 0; i < spawned.Count; i++)
+            {
+                spawned[i].ActiveBrick(false);
+
+                spawned[i].SetAlphaBrick(1);
+            }
+        }
     }
 }
 

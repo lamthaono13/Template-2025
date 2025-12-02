@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
 
 public class PlacementPreviewController : MonoBehaviour
@@ -25,6 +26,18 @@ public class PlacementPreviewController : MonoBehaviour
         width = _width;
         height = _height;
 
+        if(spawned != null)
+        {
+            foreach (var item in spawned)
+            {
+                RecyclePreview(item);
+            }
+        }
+        else
+        {
+            spawned = new List<BlockView>();
+        }
+
         cellSize = GameHelper.DefaultCellSize;
     }
 
@@ -38,7 +51,7 @@ public class PlacementPreviewController : MonoBehaviour
 
     private void RecyclePreview(BlockView g)
     {
-
+        gameManager.PoolManager.TakeToPool<BlockView>(g.gameObject);
     }
 
     public void ShowPreview(ShapeData shape, DataClear dataClear, int ox, int oy, BlockColor color)
@@ -65,11 +78,20 @@ public class PlacementPreviewController : MonoBehaviour
             spawned.Add(view);
         }
 
-        for(int i = 0; i < dataClear.ClearRows.Length; i++)
+
+
+        List<axis> clearCheck = new List<axis>();
+
+        for (int i = 0; i < dataClear.ClearRows.Length; i++)
         {
             int ry = dataClear.ClearRows[i];
             for (int x = 0; x < GridController.Width; x++)
             {
+                if(clearCheck.Exists(ac => ac.x == x && ac.y == ry))
+                {
+                    continue;
+                }
+
                 var view = GetPreview();
                 view.transform.SetParent(previewRoot, false);
                 view.transform.localPosition = GameHelper.GridToLocal(x, ry, cellSize, width, height);
@@ -77,6 +99,8 @@ public class PlacementPreviewController : MonoBehaviour
                 view.SetAlpha(1);
                 view.ActiveShine(true);
                 spawned.Add(view);
+
+                clearCheck.Add(new axis { x = x, y = ry });
             }
         }
 
@@ -85,6 +109,11 @@ public class PlacementPreviewController : MonoBehaviour
             int cx = dataClear.ClearCols[i];
             for (int y = 0; y < GridController.Height; y++)
             {
+                if (clearCheck.Exists(ac => ac.x == cx && ac.y == y))
+                {
+                    continue;
+                }
+
                 var view = GetPreview();
                 view.transform.SetParent(previewRoot, false);
                 view.transform.localPosition = GameHelper.GridToLocal(cx, y, cellSize, width, height);
@@ -92,6 +121,8 @@ public class PlacementPreviewController : MonoBehaviour
                 view.SetAlpha(1);
                 view.ActiveShine(true);
                 spawned.Add(view);
+
+                clearCheck.Add(new axis { x = cx, y = y });
             }
         }
     }
@@ -100,8 +131,14 @@ public class PlacementPreviewController : MonoBehaviour
     {
         foreach (var g in spawned)
         {
-            if (g != null) gameManager.PoolManager.TakeToPool<BlockView>(g.gameObject);
+            if (g != null) RecyclePreview(g);
         }
         spawned.Clear();
     }
+}
+
+public struct axis
+{
+    public int x;
+    public int y;
 }

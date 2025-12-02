@@ -6,14 +6,12 @@ using UnityEngine;
 public class TrayManager : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private GameObject blockPrefab;                 // piece prefab (1 tile)
     [SerializeField] private Tray[] trays;
     [SerializeField] private GameManager gameManager;
     [Tooltip("Scale of tray shapes relative to board cell size")]
     public float visualScale = 0.6f;
 
-    [HideInInspector]
-    public BlockModel[] currentTrio = new BlockModel[0];
+    private BlockModel[] currentTrio = new BlockModel[0];
 
 
 
@@ -54,6 +52,8 @@ public class TrayManager : MonoBehaviour
         for (int i = 0; i < trays.Length; i++)
         {
             trays[i].Init(i, this, gameManager);
+
+            trays[i].Reload(null);
         }
     }
 
@@ -81,6 +81,8 @@ public class TrayManager : MonoBehaviour
             {
                 trays[i].Reload(null);
 
+                currentTrio[i] = null;
+
                 countNull++;
             }
             else
@@ -90,8 +92,6 @@ public class TrayManager : MonoBehaviour
                     countNull++;
                 }
             }
-
-            currentTrio[i] = null;
         }
 
         if(countNull >= trays.Length)
@@ -105,6 +105,11 @@ public class TrayManager : MonoBehaviour
             //return;
         }
     }
+
+    public BlockModel[] GetCurrentDataTrays()
+    {
+        return currentTrio;
+    } 
 
     private void OnGridChange(EventChangedGrid eventChangedGrid)
     {
@@ -124,7 +129,7 @@ public class TrayManager : MonoBehaviour
 
         for (int i = 0; i < trays.Length; i++)
         {
-            trays[i].Reload(currentTrio[i]);
+            trays[i].Reload(currentTrio[i], eventChangedGrid.dataGrid);
         }
 
         //Debug.LogError("!333");

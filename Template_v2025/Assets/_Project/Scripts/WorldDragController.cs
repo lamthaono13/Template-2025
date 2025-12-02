@@ -18,9 +18,19 @@ public class WorldDragController : MonoBehaviour
 
     private bool canDrag = false;
 
-    private void Awake()
+    private void Start()
     {
+        EventBus.AddListener<EventEndGame>(OnEndGame);
+    }
 
+    private void OnDestroy()
+    {
+        EventBus.RemoveListener<EventEndGame>(OnEndGame);
+    }
+
+    private void OnEndGame(EventEndGame eventEndGame)
+    {
+        canDrag = false;
     }
 
     public void Init()

@@ -10,6 +10,8 @@ public class BlockView : MonoBehaviour
     [SerializeField] private SpriteRenderer srShine;
     [SerializeField] private SpriteRenderer srBrick;
 
+    [SerializeField] private ParticleSystem particleSystemClear;
+
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
@@ -18,6 +20,10 @@ public class BlockView : MonoBehaviour
     private void OnEnable()
     {
         SetAlpha(1f);
+        particleSystemClear.gameObject.SetActive(false);
+        particleSystemClear.Clear();
+        SetAlphaShine(1);
+        SetAlphaBrick(1);
         ActiveShine(false);
         ActiveBrick(false);
     }
@@ -32,6 +38,20 @@ public class BlockView : MonoBehaviour
         var c = sr.color;
         c.a = Mathf.Clamp01(a);
         sr.color = c;
+    }
+
+    public void SetAlphaShine(float a)
+    {
+        var c = srShine.color;
+        c.a = Mathf.Clamp01(a);
+        srShine.color = c;
+    }
+
+    public void SetAlphaBrick(float a)
+    {
+        var c = srBrick.color;
+        c.a = Mathf.Clamp01(a);
+        srBrick.color = c;
     }
 
     private Sprite ColorFor(BlockColor c)
@@ -54,5 +74,17 @@ public class BlockView : MonoBehaviour
         sr.sortingOrder = order;
         srShine.sortingOrder = order + 1;
         srBrick.sortingOrder = order + 1;
+    }
+
+    public void PlayVfxClear()
+    {
+        particleSystemClear.gameObject.SetActive(true);
+
+        particleSystemClear.Play();
+    }
+
+    public bool CheckIsBrick()
+    {
+        return srBrick.gameObject.activeSelf;
     }
 }

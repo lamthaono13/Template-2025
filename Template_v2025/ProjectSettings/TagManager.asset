@@ -51,3 +51,6 @@ TagManager:
   - name: Block
     uniqueID: 1622778579
     locked: 0
+  - name: Vfx
+    uniqueID: 4040495479
+    locked: 0

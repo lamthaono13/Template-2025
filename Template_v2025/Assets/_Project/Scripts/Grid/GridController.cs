@@ -7,21 +7,21 @@ public class GridController : MonoBehaviour
     public const int Width = 8;
     public const int Height = 8;
 
-    public event Action<DataClear> OnCleared;
-    public event Action OnGridChanged;
-
     [SerializeField] private GridRenderer gridRenderer;
 
     [SerializeField] public PlacementPreviewController placementPreviewController;
 
     private DataGrid dataGrid;
 
-    public void Init()
+    private void Start()
     {
         EventBus.AddListener<StartDragEvent>(OnStartDrag);
         EventBus.AddListener<ContinueDragEvent>(OnContinueDrag);
         EventBus.AddListener<EndDragEvent>(OnEndDrag);
+    }
 
+    public void Init()
+    {
         ClearGrid();
 
         gridRenderer.Init(Width, Height);
@@ -132,7 +132,6 @@ public class GridController : MonoBehaviour
     public void ClearGrid()
     {
         dataGrid = new DataGrid(Width, Height);
-        OnGridChanged?.Invoke();
     }
 
     public void PlaceShape(ShapeData shape, BlockColor color, int ox, int oy)
@@ -154,11 +153,11 @@ public class GridController : MonoBehaviour
             };
         }
 
-        DataClear cleared = CheckClear();
+        DataClear cleared = CheckClear(shape, color, ox, oy);
 
         if (cleared.Count() > 0)
         {
-            ClearFullLines(CheckClear());
+            ClearFullLines(cleared);
 
             EventBus.Raise(new EventClear(cleared));
         }
@@ -185,40 +184,6 @@ public class GridController : MonoBehaviour
             }
         }
 
-    }
-
-    public DataClear CheckClear()
-    {
-        List<int> rowsToClear = new List<int>();
-        List<int> colsToClear = new List<int>();
-
-        for (int y = 0; y < Height; y++)
-        {
-            bool full = true;
-            for (int x = 0; x < Width; x++)
-            {
-                if (dataGrid.Cells[x, y] == null) { full = false; break; }
-            }
-            if (full) rowsToClear.Add(y);
-        }
-
-        for (int x = 0; x < Width; x++)
-        {
-            bool full = true;
-            for (int y = 0; y < Height; y++)
-            {
-                if (dataGrid.Cells[x, y] == null) { full = false; break; }
-            }
-            if (full) colsToClear.Add(x);
-        }
-
-        DataClear dataClear = new DataClear
-        (
-            rowsToClear.ToArray(),
-            colsToClear.ToArray()
-        );
-
-        return dataClear;
     }
 
     public DataClear CheckClear(ShapeData shape, BlockColor color, int ox, int oy)
@@ -268,7 +233,8 @@ public class GridController : MonoBehaviour
         DataClear dataClear = new DataClear
         (
             rowsToClear.ToArray(),
-            colsToClear.ToArray()
+            colsToClear.ToArray(),
+            color
         );
 
         rowsToClear.Clear();
@@ -320,10 +286,13 @@ public class DataClear
     public int[] ClearRows;
     public int[] ClearCols;
 
-    public DataClear(int[] clearRows, int[] clearCols)
+    public BlockColor blockColor;
+
+    public DataClear(int[] clearRows, int[] clearCols, BlockColor blockColor)
     {
         ClearRows = clearRows;
         ClearCols = clearCols;
+        this.blockColor = blockColor;
     }
 
     public int Count()

@@ -1,4 +1,7 @@
+using DG.Tweening;
 using System.Collections.Generic;
+using System.Drawing;
+using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
 
 public class GridRenderer : MonoBehaviour
@@ -28,6 +31,17 @@ public class GridRenderer : MonoBehaviour
         height = _height;
 
         cellSize = GameHelper.DefaultCellSize;
+
+        if(placed != null)
+        {
+            foreach (var item in placed)
+            {
+                if (item != null)
+                {
+                    Recycle(item.gameObject);
+                }
+            }
+        }
 
         placed = new BlockView[width, height];
     }
@@ -106,7 +120,67 @@ public class GridRenderer : MonoBehaviour
 
     private void OnClear(EventClear eventClear)
     {
+        Dictionary<axis, BlockView> clearCheck = new Dictionary<axis, BlockView>();
 
+        DataClear dataClear = eventClear.dataClear;
+
+        for (int i = 0; i < dataClear.ClearRows.Length; i++)
+        {
+            int ry = dataClear.ClearRows[i];
+            for (int x = 0; x < GridController.Width; x++)
+            {
+                if (clearCheck.ContainsKey(new axis() { x = x, y = ry }))
+                {
+                    continue;
+                }
+
+                var view = GetFromPool();
+                view.transform.localPosition = GameHelper.GridToLocal(x, ry, cellSize, width, height);
+
+                view.SetColor(dataClear.blockColor);
+                view.SetAlpha(1f);
+
+                clearCheck.Add(new axis { x = x, y = ry }, view);
+            }
+        }
+
+        for (int i = 0; i < dataClear.ClearCols.Length; i++)
+        {
+            int cx = dataClear.ClearCols[i];
+            for (int y = 0; y < GridController.Height; y++)
+            {
+                if (clearCheck.ContainsKey(new axis() { x = cx, y = y }))
+                {
+                    continue;
+                }
+
+                var view = GetFromPool();
+                view.transform.localPosition = GameHelper.GridToLocal(cx, y, cellSize, width, height);
+
+                view.SetColor(dataClear.blockColor);
+                view.SetAlpha(1f);
+
+                clearCheck.Add(new axis { x = cx, y = y }, view);
+            }
+        }
+
+
+        foreach(var view in clearCheck.Values)
+        {
+            // add shine effect
+
+            view.ActiveShine(true);
+            view.PlayVfxClear();
+
+            DOTween.To((x) => 
+            {
+                view.SetAlpha(x);
+                view.SetAlphaShine(x);
+            }, 1.0f, 0.0f, 0.7f).OnComplete(() =>
+            {
+                Recycle(view.gameObject);
+            });
+        }
     }
 
     private void OnGridChange(EventChangedGrid eventChangedGrid)
