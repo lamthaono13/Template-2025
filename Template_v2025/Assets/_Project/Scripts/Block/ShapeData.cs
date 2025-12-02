@@ -3,9 +3,9 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "BlockSmash/ShapeData")]
 public class ShapeData : ScriptableObject
 {
-    public BlockShape BlockShape;
+    [SerializeField] private BlockShape BlockShape;
 
-    public string shapeName;
+    //public string shapeName;
 
     public Vector2Int[] cells
     {

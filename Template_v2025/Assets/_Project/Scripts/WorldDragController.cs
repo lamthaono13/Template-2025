@@ -4,33 +4,30 @@ using UnityEngine;
 public class WorldDragController : MonoBehaviour
 {
     [SerializeField] private Camera cam;
-    private TrayManager trayManager;
-    private PlacementPreviewController preview;
-    [SerializeField] private GameManager gameManager;
-    private GridRenderer gridRenderer;
+    //private TrayManager trayManager;
+    //private PlacementPreviewController preview;
+    //[SerializeField] private GameManager gameManager;
+    //private GridRenderer gridRenderer;
 
     private bool isDragging = false;
-    private GameObject draggingVisual = null;
+
     private Vector3 dragOffset = Vector3.zero;
     [SerializeField]private Vector3 dragOffsetDefault = Vector3.zero;
-    public int dragSortingOrder = 1000;
 
-    private Tray currTray;
+    private IInteractTray currTray;
 
     private bool canDrag = false;
 
     private void Awake()
     {
-        if (cam == null) cam = Camera.main;
+
     }
 
     public void Init()
     {
         canDrag = true;
 
-        trayManager = gameManager.TrayManager;
-        preview = gameManager.Preview;
-        gridRenderer = gameManager.Grid.GridRenderer;
+        if (cam == null) cam = Camera.main;
     }
 
     private void Update()
@@ -67,9 +64,9 @@ public class WorldDragController : MonoBehaviour
             return;
         }
 
-        currTray = hit.collider.GetComponent<Tray>();
+        currTray = hit.collider.GetComponent<IInteractTray>();
 
-        if (!currTray.CanGet())
+        if (!currTray.CanGetTray())
         {
             return;
         }
@@ -94,17 +91,11 @@ public class WorldDragController : MonoBehaviour
         isDragging = true;
 
 
-        // clone the whole container
-        draggingVisual = container;
+        dragOffset = container.transform.position - worldPos;
 
+        EventBus.Raise(new StartDragEvent(worldPos, dragOffset + dragOffsetDefault, currTray));
 
-        dragOffset = draggingVisual.transform.position - worldPos;
-
-        Vector3 initialPos = new Vector3(worldPos.x + dragOffset.x + dragOffsetDefault.x, worldPos.y + dragOffset.y + dragOffsetDefault.y, draggingVisual.transform.position.z);
-
-        container.transform.DOMove(initialPos, 0.2f).SetEase(DG.Tweening.Ease.Linear);
-
-        //ContinueDragImmediate(worldPos);
+        ContinueDragImmediate(worldPos);
     }
 
     private void ContinueDrag(Vector3 screenPos)
@@ -113,43 +104,11 @@ public class WorldDragController : MonoBehaviour
         ContinueDragImmediate(world);
     }
 
-    private int prevOx = -1;
-    private int prevOy = -1;
-
     private void ContinueDragImmediate(Vector3 world)
     {
-        if (!isDragging || draggingVisual == null) return;
+        if (!isDragging || currTray == null) return;
 
-        draggingVisual.transform.position = new Vector3(world.x + dragOffset.x + dragOffsetDefault.x, world.y + dragOffset.y + dragOffsetDefault.y, draggingVisual.transform.position.z);
-
-        int ox, oy;
-        bool inside = gameManager.Grid.GridRenderer.WorldToGrid(draggingVisual.transform.position, out ox, out oy);
-
-        if(ox == prevOx && oy == prevOy) return;
-
-        prevOx = ox;
-        prevOy = oy;
-
-        var model = currTray.GetCurrentModel();
-        if (inside && model != null)
-        {
-            bool canPlace = gameManager.Grid.CanPlaceShape(model.shape, ox, oy);
-
-            if (canPlace)
-            {
-                preview.ShowPreview(model.shape, ox, oy, canPlace, model.color);
-            }
-            else
-            {
-                preview.ClearPreview();
-            }
-
-            //preview.ShowPreview(model.shape, ox, oy, canPlace, model.color);
-        }
-        else
-        {
-            preview.ClearPreview();
-        }
+        EventBus.Raise(new ContinueDragEvent(world, dragOffset + dragOffsetDefault, currTray));
     }
 
     private void EndDrag(Vector3 screenPos)
@@ -157,44 +116,59 @@ public class WorldDragController : MonoBehaviour
         if (!isDragging) return;
 
         Vector3 world = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, Mathf.Abs(cam.transform.position.z)));
-        Vector3 checkPos = draggingVisual != null ? draggingVisual.transform.position : world;
 
-        int ox, oy;
-        bool inside = gridRenderer.WorldToGrid(checkPos, out ox, out oy);
+        EventBus.Raise(new EndDragEvent(world, dragOffset + dragOffsetDefault, currTray));
 
-        preview.ClearPreview();
-
-        var model = currTray.GetCurrentModel();
-
-        if (inside && model != null && gameManager.Grid.CanPlaceShape(model.shape, ox, oy))
-        {
-            //gameManager.TryPlaceFromUI(model, ox, oy);
-
-
-            if (model == null) return;
-
-            if (gameManager.Grid.CanPlaceShape(model.shape, ox, oy))
-            {
-                gameManager.Grid.PlaceShape(model.shape, model.color, ox, oy);
-
-                currTray.ReturnToTray(false);
-
-                trayManager.RemoveSlotAndRefill(currTray, true);
-            }
-            else
-            {
-                currTray.ReturnToTray(true);
-
-                trayManager.RemoveSlotAndRefill(currTray, false);
-            }
-        }
-        else
-        {
-            currTray.ReturnToTray(true);
-        }
-
-        draggingVisual = null;
         isDragging = false;
         currTray = null;
+    }
+}
+
+
+public struct StartDragEvent : IGameEvent
+{
+    public Vector2 pos;
+
+    public Vector2 offSet;
+
+    public IInteractTray iInteractTray;
+
+    public StartDragEvent(Vector2 pos, Vector2 offSet, IInteractTray iInteractTray)
+    {
+        this.pos = pos;
+        this.offSet = offSet;
+        this.iInteractTray = iInteractTray;
+    }
+}
+
+public struct ContinueDragEvent : IGameEvent
+{
+    public Vector2 pos;
+
+    public Vector2 offSet;
+
+    public IInteractTray iInteractTray;
+
+    public ContinueDragEvent(Vector2 pos, Vector2 offSet, IInteractTray iInteractTray)
+    {
+        this.pos = pos;
+        this.offSet = offSet;
+        this.iInteractTray = iInteractTray;
+    }
+}
+
+public struct EndDragEvent : IGameEvent
+{
+    public Vector2 pos;
+
+    public Vector2 offSet;
+
+    public IInteractTray iInteractTray;
+
+    public EndDragEvent(Vector2 pos, Vector2 offSet, IInteractTray iInteractTray)
+    {
+        this.pos = pos;
+        this.offSet = offSet;
+        this.iInteractTray = iInteractTray;
     }
 }

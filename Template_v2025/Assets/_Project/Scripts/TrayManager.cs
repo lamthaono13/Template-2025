@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,7 +17,7 @@ public class TrayManager : MonoBehaviour
 
 
 
-    private BlockSpawner spawner;
+    [SerializeField] private BlockSpawner spawner;
 
     private void Awake()
     {
@@ -26,49 +27,57 @@ public class TrayManager : MonoBehaviour
 
     private void Start()
     {
+        EventBus.AddListener<EventTrayShapePlaced>(OnTrayShapePlaced);
+        EventBus.AddListener<EventChangedGrid>(OnGridChange);
+    }
 
+    private void OnTrayShapePlaced(EventTrayShapePlaced placed)
+    {
+        RemoveSlotAndRefill(placed.iInteractTray);
+    }
+
+    private void OnDestroy()
+    {
+        EventBus.RemoveListener<EventTrayShapePlaced>(OnTrayShapePlaced);
+        EventBus.RemoveListener<EventChangedGrid>(OnGridChange);
     }
 
     public void Init()
     {
-        if (spawner == null)
-        {
-            spawner = gameManager.Spawner;
-        }
+        //if (spawner == null)
+        //{
+        //    spawner = gameManager.Spawner;
+        //}
 
-        GenerateInitial();
+        spawner.Init();
 
         for (int i = 0; i < trays.Length; i++)
         {
-            trays[i].Init(i, currentTrio[i], this, gameManager);
+            trays[i].Init(i, this, gameManager);
         }
-
-
     }
 
-    public void GenerateInitial()
+    //public void GenerateInitial(DataGrid dataGrid)
+    //{
+    //    //if (spawner == null)
+    //    //{
+    //    //    Debug.LogWarning("[TrayManager] spawner not assigned");
+    //    //    return;
+    //    //}
+
+    //    // generate trio using spawner
+    //    currentTrio = spawner.GenerateThree(dataGrid);
+    //}
+
+    public void RemoveSlotAndRefill(IInteractTray tray)
     {
-        if (spawner == null)
-        {
-            Debug.LogWarning("[TrayManager] spawner not assigned");
-            return;
-        }
-
-        // generate trio using spawner
-        currentTrio = spawner.GenerateThree(gameManager.Grid);
-    }
-
-    public void RemoveSlotAndRefill(Tray tray, bool isPlace)
-    {
-        if (!isPlace) return;
-
         if (tray == null) return;
 
         int countNull = 0;
 
         for(int i = 0; i < trays.Length; i++)
         {
-            if (trays[i] == tray)
+            if (i == tray.GetId())
             {
                 trays[i].Reload(null);
 
@@ -81,23 +90,59 @@ public class TrayManager : MonoBehaviour
                     countNull++;
                 }
             }
+
+            currentTrio[i] = null;
         }
 
         if(countNull >= trays.Length)
         {
-            // all empty, generate new trio
-            currentTrio = spawner.GenerateThree(gameManager.Grid);
-            for (int i = 0; i < trays.Length; i++)
-            {
-                trays[i].Reload(currentTrio[i]);
-            }
-            return;
+            //// all empty, generate new trio
+            //currentTrio = spawner.GenerateThree(new DataGrid(1, 1));
+            //for (int i = 0; i < trays.Length; i++)
+            //{
+            //    trays[i].Reload(currentTrio[i]);
+            //}
+            //return;
         }
+    }
+
+    private void OnGridChange(EventChangedGrid eventChangedGrid)
+    {
+        //Debug.LogError("!111");
+
+        for (int i = 0; i < trays.Length; i++)
+        {
+            if (trays[i].GetCurrentModel() != null)
+            {
+                return;
+            }
+        }
+
+        //Debug.LogError("!222");
+
+        currentTrio = spawner.GenerateThree(eventChangedGrid.dataGrid);
+
+        for (int i = 0; i < trays.Length; i++)
+        {
+            trays[i].Reload(currentTrio[i]);
+        }
+
+        //Debug.LogError("!333");
     }
 
     public BlockModel GetModelAt(int idx)
     {
         if (currentTrio == null || idx < 0 || idx >= currentTrio.Length) return null;
         return currentTrio[idx];
+    }
+}
+
+public struct EventTrayShapePlaced: IGameEvent
+{
+    public IInteractTray iInteractTray;
+
+    public EventTrayShapePlaced(IInteractTray tray)
+    {
+        iInteractTray = tray;
     }
 }

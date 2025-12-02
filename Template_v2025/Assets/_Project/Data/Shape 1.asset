@@ -13,7 +13,6 @@ MonoBehaviour:
   m_Name: Shape 1
   m_EditorClassIdentifier: 
   BlockShape:
-    _width: 1
+    _width: 2
     _height: 1
-    _shape: 01
-  shapeName: 1
+    _shape: 0101

@@ -3,42 +3,45 @@ using UnityEngine;
 
 public class GridRenderer : MonoBehaviour
 {
-    public GameManager GameManager;
+    [SerializeField] private GameManager GameManager;
 
-    public Transform root;
+    [SerializeField] private Transform root;
 
     // set by BoardScaler at runtime
     //[HideInInspector]
-    public float cellSize = 1f;
+    private float cellSize = 1.12f;
 
-
-    public float blockLocalScale = 1f;
-
-    private BlockView[,] placed = new BlockView[GridController.Width, GridController.Height];
+    private BlockView[,] placed;
 
     private int width;
     private int height;
 
     private void Start()
     {
-
+        EventBus.AddListener<EventClear>(OnClear);
+        EventBus.AddListener<EventChangedGrid>(OnGridChange);
     }
 
     public void Init(int _width, int _height)
     {
         width = _width;
         height = _height;
+
+        cellSize = GameHelper.DefaultCellSize;
+
+        placed = new BlockView[width, height];
     }
 
     private BlockView GetFromPool()
     {
         var go = GameManager.PoolManager.GetPool<BlockView>(root);
 
-        go.SetOrderLayer(0);
+        go.SetOrderLayer(GameHelper.OrderInLayerBlockOnBoard);
 
         go.SetAlpha(1f);
 
-        go.transform.localScale = Vector3.one * blockLocalScale;
+        go.transform.localScale = Vector3.one;
+
         return go;
     }
 
@@ -84,7 +87,7 @@ public class GridRenderer : MonoBehaviour
                     if (cur == null)
                     {
                         var view = GetFromPool();
-                        view.transform.localPosition = GridToLocal(x, y);
+                        view.transform.localPosition = GameHelper.GridToLocal(x, y, cellSize, width, height);
 
                         view.SetColor(cell.color);
                         view.SetAlpha(1f);
@@ -101,68 +104,33 @@ public class GridRenderer : MonoBehaviour
         }
     }
 
-    public Vector3 GridToLocal(int x, int y)
+    private void OnClear(EventClear eventClear)
     {
-        float boardWidth = cellSize * width;
-        float boardHeight = cellSize * height;
 
-        // center-based
-        float startX = -boardWidth / 2f + cellSize / 2f;
-        float startY = -boardHeight / 2f + cellSize / 2f;
-
-        float px = startX + x * cellSize;
-        float py = startY + y * cellSize;
-
-        return new Vector3(px, py, 0f);
     }
 
-
-    public bool WorldToGrid(Vector3 worldPos, out int outX, out int outY)
+    private void OnGridChange(EventChangedGrid eventChangedGrid)
     {
-        outX = -1;
-        outY = -1;
-
-        if (root == null)
-        {
-            Debug.LogWarning("[GridRenderer] root not assigned");
-            return false;
-        }
-
-        // convert world to local (root is child of Board)
-        Vector3 local = root.InverseTransformPoint(worldPos);
-
-        float boardWidth = cellSize * width;
-        float boardHeight = cellSize * height;
-
-        float startX = -boardWidth / 2f + cellSize / 2f;
-        float startY = -boardHeight / 2f + cellSize / 2f;
-
-        float fx = (local.x - startX) / cellSize;
-        float fy = (local.y - startY) / cellSize;
-
-        // Use RoundToInt so we snap to nearest cell center (consistent with GridToLocal centers)
-        int ix = Mathf.RoundToInt(fx);
-        int iy = Mathf.RoundToInt(fy);
-
-        if (ix < 0 || ix >= width || iy < 0 || iy >= height)
-            return false;
-
-        outX = ix;
-        outY = iy;
-        return true;
+        ApplySnapshot(eventChangedGrid.dataGrid.Cells);
     }
 
-    public Rect GetBoardWorldRect()
+    private void OnDestroy()
     {
-        if (root == null) return new Rect();
-
-        Vector3 worldCenter = root.transform.position;
-        float boardWorldWidth = cellSize * width * root.lossyScale.x;
-        float boardWorldHeight = cellSize * height * root.lossyScale.y;
-
-        float left = worldCenter.x - boardWorldWidth / 2f;
-        float bottom = worldCenter.y - boardWorldHeight / 2f;
-
-        return new Rect(left, bottom, boardWorldWidth, boardWorldHeight);
+        EventBus.RemoveListener<EventClear>(OnClear);
+        EventBus.RemoveListener<EventChangedGrid>(OnGridChange);
     }
+
+    //public Rect GetBoardWorldRect()
+    //{
+    //    if (root == null) return new Rect();
+
+    //    Vector3 worldCenter = root.transform.position;
+    //    float boardWorldWidth = cellSize * width * root.lossyScale.x;
+    //    float boardWorldHeight = cellSize * height * root.lossyScale.y;
+
+    //    float left = worldCenter.x - boardWorldWidth / 2f;
+    //    float bottom = worldCenter.y - boardWorldHeight / 2f;
+
+    //    return new Rect(left, bottom, boardWorldWidth, boardWorldHeight);
+    //}
 }

@@ -276,5 +276,5 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 64f7ccbd47c1eee4eb8df08fcdeca510, type: 3}
   - {fileID: 21300000, guid: 5d2dd2796afee8941a9f84316f4d4f20, type: 3}
   - {fileID: 21300000, guid: e7c20ecd103ede8499107655b7519c93, type: 3}
-  objShine: {fileID: 7284037979321096612}
-  objBrick: {fileID: 6825634886375878587}
+  srShine: {fileID: 3260958172183663195}
+  srBrick: {fileID: 8616821525066306542}

@@ -20,17 +20,14 @@ public class SceneService : MonoBehaviour, ISceneService, IInitializable
         var mode = additive ? LoadSceneMode.Additive : LoadSceneMode.Single;
         var op = SceneManager.LoadSceneAsync(sceneName, mode);
 
-        var bus = ServiceLocator.Get<IEventBus>();
-        bus?.Publish(new SceneLoadingEvent(sceneName, 0f));
 
         while (!op.isDone)
         {
             float normalized = (op.progress < 0.9f) ? (op.progress / 0.9f) : 1f;
-            bus?.Publish(new SceneLoadingEvent(sceneName, normalized));
             await UniTask.Yield(); // next frame
         }
 
-        bus?.Publish(new SceneLoadedEvent(sceneName));
+
 
         IsLoading = false;
     }
@@ -44,7 +41,6 @@ public class SceneService : MonoBehaviour, ISceneService, IInitializable
     {
         var op = SceneManager.UnloadSceneAsync(sceneName);
         await op.ToUniTask();
-        ServiceLocator.Get<IEventBus>()?.Publish(new SceneUnloadedEvent(sceneName));
     }
 
     public void Initialize()

@@ -7,12 +7,19 @@ public class BlockView : MonoBehaviour
 
     [SerializeField] private Sprite[] spritesColors;
 
-    [SerializeField] private GameObject objShine;
-    [SerializeField] private GameObject objBrick;
+    [SerializeField] private SpriteRenderer srShine;
+    [SerializeField] private SpriteRenderer srBrick;
 
     private void Awake()
     {
         sr = GetComponent<SpriteRenderer>();
+    }
+
+    private void OnEnable()
+    {
+        SetAlpha(1f);
+        ActiveShine(false);
+        ActiveBrick(false);
     }
 
     public void SetColor(BlockColor color)
@@ -34,16 +41,18 @@ public class BlockView : MonoBehaviour
 
     public void ActiveShine(bool isTrue)
     {
-        objShine.gameObject.SetActive(isTrue);
+        srShine.gameObject.SetActive(isTrue);
     }
 
     public void ActiveBrick(bool isTrue)
     {
-        objBrick.gameObject.SetActive(isTrue);
+        srBrick.gameObject.SetActive(isTrue);
     }
 
     public void SetOrderLayer(int order)
     {
         sr.sortingOrder = order;
+        srShine.sortingOrder = order + 1;
+        srBrick.sortingOrder = order + 1;
     }
 }

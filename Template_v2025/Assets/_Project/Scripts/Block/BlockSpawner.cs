@@ -5,31 +5,36 @@ using UnityEngine;
 public class BlockSpawner : MonoBehaviour
 {
     [Header("Assign ShapeData assets (41 ideally)")]
-    public ShapeData[] shapePool;
+    [SerializeField] private ShapeData[] shapePool;
 
     [Header("Colors available")]
-    public BlockColor[] availableColors = new[] { BlockColor.Red, BlockColor.Green, BlockColor.Blue };
+    [SerializeField] private BlockColor[] availableColors;
 
     public bool useAdvancedOption = false;
-
-    private System.Random rng = new System.Random();
 
     public void Init()
     {
 
     }
 
-    public BlockModel[] GenerateThree(GridController grid)
+    public BlockModel[] GenerateThree(DataGrid dataGrid)
     {
         if (shapePool == null || shapePool.Length == 0)
             throw new Exception("shapePool empty");
 
         var trio = new BlockModel[3];
 
+        List<BlockColor> availableColor = new List<BlockColor>(availableColors);
+
         for (int i = 0; i < 3; i++)
         {
-            var s = shapePool[rng.Next(shapePool.Length)];
-            trio[i] = new BlockModel(s, availableColors[i % availableColors.Length], i);
+            var s = shapePool[UnityEngine.Random.Range(0, shapePool.Length)];
+
+            int indexColorRandom = UnityEngine.Random.Range(0, availableColor.Count);
+
+            trio[i] = new BlockModel(s, availableColors[indexColorRandom], i);
+
+            availableColor.RemoveAt(indexColorRandom);
         }
 
         // try to ensure individual placeable if advanced
@@ -38,11 +43,11 @@ public class BlockSpawner : MonoBehaviour
             for (int attempt = 0; attempt < 200; attempt++)
             {
                 for (int i = 0; i < 3; i++)
-                    trio[i].shape = shapePool[rng.Next(shapePool.Length)];
+                    trio[i].shape = shapePool[UnityEngine.Random.Range(0, shapePool.Length)];
 
                 bool ok = true;
                 foreach (var b in trio)
-                    if (!grid.HasAnyValidPlacement(b.shape)) { ok = false; break; }
+                    if (!GameHelper.HasAnyValidPlacement(b.shape, dataGrid)) { ok = false; break; }
 
                 if (ok) break;
             }

@@ -1,10 +1,11 @@
 using DG.Tweening;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-public class Tray : MonoBehaviour
+public class Tray : MonoBehaviour, IInteractTray
 {
     private int id;
 
@@ -20,10 +21,49 @@ public class Tray : MonoBehaviour
 
     private List<BlockView> spawned = new List<BlockView>();
 
+    private Vector2 offSetTray;
+
     // Start is called before the first frame update
     void Start()
     {
-        
+        EventBus.AddListener<StartDragEvent>(OnStartDrag);
+        EventBus.AddListener<ContinueDragEvent>(OnContinueDrag);
+        EventBus.AddListener<EndDragEvent>(OnEndDrag);
+    }
+
+    void OnDestroy()
+    {
+        EventBus.RemoveListener<StartDragEvent>(OnStartDrag);
+        EventBus.RemoveListener<ContinueDragEvent>(OnContinueDrag);
+        EventBus.RemoveListener<EndDragEvent>(OnEndDrag);
+    }
+
+    private void OnStartDrag(StartDragEvent startDragEvent)
+    {
+        if (startDragEvent.iInteractTray.GetId() != id)
+        {
+            return;
+        }
+
+        OnGetTray();
+    }
+
+    private void OnContinueDrag(ContinueDragEvent continueDragEvent)
+    {
+        if(continueDragEvent.iInteractTray.GetId() != id)
+        {
+            return;
+        }
+
+        container.transform.position = continueDragEvent.pos + continueDragEvent.offSet;
+    }
+
+    private void OnEndDrag(EndDragEvent endDragEvent)
+    {
+        if (endDragEvent.iInteractTray.GetId() != id)
+        {
+            return;
+        }
     }
 
     // Update is called once per frame
@@ -32,7 +72,12 @@ public class Tray : MonoBehaviour
         
     }
 
-    public void Init(int _id, BlockModel blockModel, TrayManager _trayManager, GameManager _gameManager)
+    public Vector2 GetOffSetTray()
+    {
+        return offSetTray;
+    }
+
+    public void Init(int _id, TrayManager _trayManager, GameManager _gameManager)
     {
         id = _id;
 
@@ -40,7 +85,7 @@ public class Tray : MonoBehaviour
 
         gameManager = _gameManager;
 
-        Reload(blockModel);
+        SetCanGet(true);
     }
 
     public int GetId()
@@ -64,6 +109,11 @@ public class Tray : MonoBehaviour
 
         if(blockModel != null)
         {
+            var cellSize = GameHelper.DefaultCellSize;
+
+            float startX = -blockModel.shape.GetWidth() / 2f + cellSize / 2f;
+            float startY = -blockModel.shape.GetHeight() / 2f + cellSize / 2f;
+
             foreach (var c in blockModel.shape.cells)
             {
                 int x = c.x;
@@ -75,10 +125,6 @@ public class Tray : MonoBehaviour
                 var view = GetFromPool();
                 view.transform.SetParent(container);
 
-                var cellSize = gameManager.Grid.GridRenderer.cellSize;
-
-                float startX = -blockModel.shape.GetWidth() / 2f + cellSize / 2f;
-                float startY = -blockModel.shape.GetHeight() / 2f + cellSize / 2f;
 
                 float px = startX + x * cellSize;
                 float py = startY + y * cellSize;
@@ -89,10 +135,12 @@ public class Tray : MonoBehaviour
 
                 view.SetAlpha(1f);
 
-                view.SetOrderLayer(100);
+                view.SetOrderLayer(GameHelper.OrderInLayerBlockInTray);
 
                 spawned.Add(view);
             }
+
+            offSetTray = new Vector2( startX, startY);
         }
         else
         {                    
@@ -105,15 +153,38 @@ public class Tray : MonoBehaviour
         }
     }
 
+    public void OnGetTray()
+    {
+        if (tweenReturnToTray != null)
+        {
+            tweenReturnToTray.Kill();
+        }
+
+        foreach (var t in spawned)
+        {
+            t.SetOrderLayer(GameHelper.OrderInLayerBlockDrag);
+        }
+    }
+
+    private Tween tweenReturnToTray;
+
     public void ReturnToTray(bool hasTween)
     {
         if (hasTween)
         {
-            SetCanGet(false);
-
-            container.DOLocalMove(Vector3.zero, 0.25f).SetEase(DG.Tweening.Ease.OutBack).OnComplete(() =>
+            if(tweenReturnToTray != null)
             {
-                SetCanGet(true);
+                tweenReturnToTray.Kill();
+            }
+
+            tweenReturnToTray = container.DOLocalMove(Vector3.zero, 0.25f).SetEase(DG.Tweening.Ease.OutBack).OnComplete(() =>
+            {
+                tweenReturnToTray = null;
+
+                foreach (var t in spawned)
+                {
+                    t.SetOrderLayer(GameHelper.OrderInLayerBlockInTray);
+                }
             });
         }
         else
@@ -124,14 +195,9 @@ public class Tray : MonoBehaviour
 
     }
 
-    public void SetCanGet(bool _canGet)
+    private void SetCanGet(bool _canGet)
     {
         canGet = _canGet;
-    }
-
-    public bool CanGet()
-    {
-        return canGet && currentModel != null;
     }
 
     private BlockView GetFromPool()
@@ -146,4 +212,26 @@ public class Tray : MonoBehaviour
     {
         gameManager.PoolManager.TakeToPool<BlockView>(g);
     }
+
+    public bool CanGetTray()
+    {
+        return canGet && currentModel != null;
+    }
+}
+
+public interface IInteractTray
+{
+    public int GetId();
+
+    public GameObject GetContainer();
+
+    public void OnGetTray();
+
+    public void ReturnToTray(bool hasTween);
+
+    public bool CanGetTray();
+
+    public BlockModel GetCurrentModel();
+
+    public Vector2 GetOffSetTray();
 }

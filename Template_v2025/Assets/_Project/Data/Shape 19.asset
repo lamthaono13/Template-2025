@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 465bbbae681fc8d4680e7ef339d9d339, type: 3}
   m_Name: Shape 19
   m_EditorClassIdentifier: 
-  cells: []
-  shapeName: 
+  BlockShape:
+    _width: 2
+    _height: 3
+    _shape: 000100010101
