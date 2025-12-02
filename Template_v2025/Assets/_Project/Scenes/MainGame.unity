@@ -369,6 +369,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 210623293}
+  - {fileID: 827018346}
   m_Father: {fileID: 514695980}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &233075967
@@ -461,7 +462,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 2, y: 2}
+  m_Size: {x: 3.342948, y: 3.162166}
   m_EdgeRadius: 0
 --- !u!1 &242733558
 GameObject:
@@ -1105,12 +1106,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 827018344}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.07, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: -2.6000001, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 232645213}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &889309312
 GameObject:
@@ -1223,10 +1224,10 @@ RectTransform:
   - {fileID: 826265349}
   m_Father: {fileID: 1327781045}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 1080, y: 1920}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &921700901
 MonoBehaviour:
@@ -1356,7 +1357,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 2, y: 2}
+  m_Size: {x: 3.342948, y: 3.162166}
   m_EdgeRadius: 0
 --- !u!1 &951213486
 GameObject:
@@ -1631,6 +1632,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   GameManager: {fileID: 2087384514}
   root: {fileID: 210623293}
+  objBoard: {fileID: 232645211}
 --- !u!4 &1096069856
 Transform:
   m_ObjectHideFlags: 0
@@ -1817,7 +1819,7 @@ BoxCollider2D:
     adaptiveTiling: 0
   m_AutoTiling: 0
   serializedVersion: 2
-  m_Size: {x: 2, y: 2}
+  m_Size: {x: 3.342948, y: 3.162166}
   m_EdgeRadius: 0
 --- !u!1 &1585034357
 GameObject:
@@ -1848,14 +1850,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e09029bead099694abbe5294fe0438eb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blockPrefab: {fileID: 7340468591566681506, guid: b98af08d2bf95fc4fbf15802b1de651b, type: 3}
   trays:
   - {fileID: 233075969}
   - {fileID: 1401908143}
   - {fileID: 951186794}
   gameManager: {fileID: 2087384514}
   visualScale: 0.6
-  currentTrio: []
   spawner: {fileID: 951213487}
 --- !u!4 &1585034359
 Transform:
@@ -1866,7 +1866,7 @@ Transform:
   m_GameObject: {fileID: 1585034357}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -4, z: 0}
+  m_LocalPosition: {x: 0, y: -6.3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -2094,7 +2094,6 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 1029170943}
-  - {fileID: 827018346}
   - {fileID: 785026139}
   - {fileID: 2087384515}
   - {fileID: 514695980}

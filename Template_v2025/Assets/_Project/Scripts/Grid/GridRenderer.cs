@@ -19,10 +19,14 @@ public class GridRenderer : MonoBehaviour
     private int width;
     private int height;
 
+    [SerializeField] public GameObject objBoard;
+
     private void Start()
     {
         EventBus.AddListener<EventClear>(OnClear);
         EventBus.AddListener<EventChangedGrid>(OnGridChange);
+
+        objBoard.gameObject.transform.localScale = GameHelper.ScaleBoard() * Vector3.one;
     }
 
     public void Init(int _width, int _height)

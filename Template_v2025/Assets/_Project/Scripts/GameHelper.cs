@@ -15,6 +15,21 @@ public static class GameHelper
 
     public static int OrderInLayerBlockDrag = 100;
 
+    public static float OffSetScaleTray = 0.6f;
+
+    public static float ScaleBoard()
+    {
+        float defaultAs = 9f / 16f;
+
+        float worldHeight = Camera.main.orthographicSize * 2f;
+        float worldWidth = worldHeight * Camera.main.aspect;
+
+        float scale = Camera.main.aspect / defaultAs;
+
+        return 1f * scale;
+    }
+
+
     public static Vector3 GridToLocal(int x, int y, float cellSize, int width, int height)
     {
         float boardWidth = cellSize * width;

@@ -13,15 +13,7 @@ public class TrayManager : MonoBehaviour
 
     private BlockModel[] currentTrio = new BlockModel[0];
 
-
-
     [SerializeField] private BlockSpawner spawner;
-
-    private void Awake()
-    {
-        // allocate arrays
-        int slots = Mathf.Max(3, trays.Length);
-    }
 
     private void Start()
     {

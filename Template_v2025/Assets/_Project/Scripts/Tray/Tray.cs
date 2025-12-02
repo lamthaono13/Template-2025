@@ -23,6 +23,9 @@ public class Tray : MonoBehaviour, IInteractTray
 
     private Vector2 offSetTray;
 
+    private float scaleTray;
+    private float scaleBoard;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -30,6 +33,10 @@ public class Tray : MonoBehaviour, IInteractTray
         EventBus.AddListener<ContinueDragEvent>(OnContinueDrag);
         EventBus.AddListener<EndDragEvent>(OnEndDrag);
         EventBus.AddListener<EventChangedGrid>(OnGridChange);
+
+        scaleTray = GameHelper.OffSetScaleTray * GameHelper.ScaleBoard();
+
+        scaleBoard = GameHelper.ScaleBoard();
     }
 
     void OnDestroy()
@@ -147,7 +154,7 @@ public class Tray : MonoBehaviour, IInteractTray
 
             container.transform.localScale = Vector3.zero;
 
-            container.transform.DOScale(Vector3.one, 0.25f).SetEase(DG.Tweening.Ease.OutBack);
+            container.transform.DOScale(Vector3.one * scaleTray, 0.25f).SetEase(DG.Tweening.Ease.OutBack);
         }
         else
         {                    
@@ -169,6 +176,13 @@ public class Tray : MonoBehaviour, IInteractTray
             tweenReturnToTray.Kill();
         }
 
+        if (tweenReturnScaleToTray != null)
+        {
+            tweenReturnScaleToTray.Kill();
+        }
+
+        container.transform.localScale = Vector3.one * scaleBoard;
+
         foreach (var t in spawned)
         {
             t.SetOrderLayer(GameHelper.OrderInLayerBlockDrag);
@@ -176,6 +190,7 @@ public class Tray : MonoBehaviour, IInteractTray
     }
 
     private Tween tweenReturnToTray;
+    private Tween tweenReturnScaleToTray;
 
     public void ReturnToTray(bool hasTween)
     {
@@ -185,6 +200,13 @@ public class Tray : MonoBehaviour, IInteractTray
             {
                 tweenReturnToTray.Kill();
             }
+
+            if (tweenReturnScaleToTray != null)
+            {
+                tweenReturnScaleToTray.Kill();
+            }
+
+            tweenReturnScaleToTray = container.transform.DOScale(Vector3.one * scaleTray, 0.25f).SetEase(DG.Tweening.Ease.OutBack);
 
             tweenReturnToTray = container.DOLocalMove(Vector3.zero, 0.25f).SetEase(DG.Tweening.Ease.OutBack).OnComplete(() =>
             {
