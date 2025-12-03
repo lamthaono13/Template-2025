@@ -1,4 +1,4 @@
-using DG.Tweening;
+﻿using DG.Tweening;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -18,6 +18,7 @@ public class GridRenderer : MonoBehaviour
     private int height;
 
     [SerializeField] public GameObject objBoard;
+    [SerializeField] public SpriteRenderer sr;
 
     private void Start()
     {
@@ -25,6 +26,30 @@ public class GridRenderer : MonoBehaviour
         EventBus.AddListener<EventChangedGrid>(OnGridChange);
 
         objBoard.gameObject.transform.localScale = GameHelper.ScaleBoard() * Vector3.one;
+
+        ScaleToScreen();
+    }
+
+    void ScaleToScreen()
+    {
+        if (!sr) return;
+
+        // Kích thước sprite ban đầu (world)
+        float spriteW = sr.bounds.size.x;
+        float spriteH = sr.bounds.size.y;
+
+        // Kích thước màn hình theo camera (world units)
+        float worldH = Camera.main.orthographicSize * 2f;
+        float worldW = worldH * Screen.width / Screen.height;
+
+        // Tính scale cần thiết
+        float scaleX = worldW / spriteW;
+        float scaleY = worldH / spriteH;
+
+        // Scale để BG phủ hết màn hình
+        float finalScale = Mathf.Max(scaleX, scaleY);
+
+        sr.transform.localScale = new Vector3(finalScale, finalScale, 1f);
     }
 
     public void Init(int _width, int _height)

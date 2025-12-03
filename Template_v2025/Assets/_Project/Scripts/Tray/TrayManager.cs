@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -38,6 +38,29 @@ public class TrayManager : MonoBehaviour
         //{
         //    spawner = gameManager.Spawner;
         //}
+
+        float worldH = Camera.main.orthographicSize * 2f;
+        float worldW = worldH * Screen.width / Screen.height;
+
+        // Padding trái/phải = 10% mỗi bên
+        float padding = worldW * 0.2f;
+
+        float left = -worldW / 2f + padding;
+        float right = worldW / 2f - padding;
+
+        float width = right - left;
+
+        int n = trays.Length;
+
+        for (int i = 0; i < n; i++)
+        {
+            float t = (n == 1) ? 0.5f : (float)i / (n - 1);  // Normalize từ 0 → 1
+            float x = Mathf.Lerp(left, right, t);
+
+            Vector3 p = trays[i].transform.position;
+            p.x = x;
+            trays[i].transform.position = p;
+        }
 
         spawner.Init();
 

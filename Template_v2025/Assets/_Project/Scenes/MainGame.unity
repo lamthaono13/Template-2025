@@ -369,7 +369,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 210623293}
-  - {fileID: 827018346}
   m_Father: {fileID: 514695980}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &233075967
@@ -874,6 +873,7 @@ Transform:
   m_Children:
   - {fileID: 1096069856}
   - {fileID: 915566294}
+  - {fileID: 827018346}
   - {fileID: 232645213}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1107,11 +1107,11 @@ Transform:
   m_GameObject: {fileID: 827018344}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -2.6000001, z: 0}
+  m_LocalPosition: {x: 0, y: 0.06999993, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 232645213}
+  m_Father: {fileID: 514695980}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &889309312
 GameObject:
@@ -1431,7 +1431,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 184801c19debade489c760b2d2c0b1fb, type: 2}
   - {fileID: 11400000, guid: 37fefc0f50155634185043ae54217c2a, type: 2}
   availableColors: 0000000001000000020000000300000004000000050000000600000007000000
-  useAdvancedOption: 0
 --- !u!4 &951213488
 Transform:
   m_ObjectHideFlags: 0
@@ -1633,6 +1632,7 @@ MonoBehaviour:
   GameManager: {fileID: 2087384514}
   root: {fileID: 210623293}
   objBoard: {fileID: 232645211}
+  sr: {fileID: 827018345}
 --- !u!4 &1096069856
 Transform:
   m_ObjectHideFlags: 0
