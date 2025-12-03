@@ -120,8 +120,8 @@ public class Tray : MonoBehaviour, IInteractTray
         {
             var cellSize = GameHelper.DefaultCellSize;
 
-            float startX = -blockModel.shape.GetWidth() / 2f + cellSize / 2f;
-            float startY = -blockModel.shape.GetHeight() / 2f + cellSize / 2f;
+            float startX = -(float)(blockModel.shape.GetWidth() * cellSize) / 2f + cellSize / 2f;
+            float startY = -(float)(blockModel.shape.GetHeight() * cellSize)/ 2f + cellSize / 2f;
 
             foreach (var c in blockModel.shape.cells)
             {

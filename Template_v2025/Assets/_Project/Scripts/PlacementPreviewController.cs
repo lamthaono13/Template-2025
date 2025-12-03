@@ -1,6 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
-using UnityEditor.Localization.Plugins.XLIFF.V12;
 using UnityEngine;
 
 public class PlacementPreviewController : MonoBehaviour

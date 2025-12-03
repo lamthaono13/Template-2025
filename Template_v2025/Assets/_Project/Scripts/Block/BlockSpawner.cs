@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class BlockSpawner : MonoBehaviour
@@ -11,7 +12,7 @@ public class BlockSpawner : MonoBehaviour
     [Header("Colors available")]
     [SerializeField] private BlockColor[] availableColors;
 
-    public bool useAdvancedOption = false;
+    private bool useAdvancedOption = false;
 
     public void Init()
     {
@@ -23,44 +24,34 @@ public class BlockSpawner : MonoBehaviour
         if (shapePool == null || shapePool.Length == 0)
             throw new Exception("shapePool empty");
 
-        var trio = new BlockModel[3];
+        //var trio = new BlockModel[3];
 
-        List<BlockColor> availableColor = new List<BlockColor>(availableColors);
+        //List<BlockColor> availableColor = new List<BlockColor>(availableColors);
 
-        for (int i = 0; i < 3; i++)
-        {
-            var s = shapePool[UnityEngine.Random.Range(0, shapePool.Length)];
+        //for (int i = 0; i < 3; i++)
+        //{
+        //    var s = shapePool[UnityEngine.Random.Range(0, shapePool.Length)];
 
-            int indexColorRandom = UnityEngine.Random.Range(0, availableColor.Count);
+        //    int indexColorRandom = UnityEngine.Random.Range(0, availableColor.Count);
 
-            trio[i] = new BlockModel(s, availableColors[indexColorRandom], i);
+        //    trio[i] = new BlockModel(s, availableColors[indexColorRandom], i);
 
-            availableColor.RemoveAt(indexColorRandom);
-        }
+        //    availableColor.RemoveAt(indexColorRandom);
+        //}
 
-        // try to ensure individual placeable if advanced
+        //// try to ensure individual placeable if advanced
+        ///
+
+        bool useAdvancedOption = ShouldUseAdvanced(dataGrid);
+
         if (useAdvancedOption)
         {
-            //for (int attempt = 0; attempt < 200; attempt++)
-            //{
-            //    for (int i = 0; i < 3; i++)
-            //        trio[i].shape = shapePool[UnityEngine.Random.Range(0, shapePool.Length)];
-
-            //    bool ok = true;
-            //    foreach (var b in trio)
-            //        if (!GameHelper.HasAnyValidPlacement(b.shape, dataGrid)) { ok = false; break; }
-
-            //    if (ok) break;
-            //}
-
             return GenerateThreeAdvanced(dataGrid);
         }
         else
         {
             return GenerateThreeRandom(dataGrid);
         }
-
-        return trio;
     }
 
     public BlockModel[] GenerateThreeRandom(DataGrid dataGrid)
@@ -119,6 +110,7 @@ public class BlockSpawner : MonoBehaviour
         {
             int count = 0;
             for (int x = 0; x < dataGrid.Width; x++)
+            {
                 for (int y = 0; y < dataGrid.Height; y++)
                 {
                     if (GameHelper.CanPlaceShape(shape, dataGrid, x, y))
@@ -128,6 +120,7 @@ public class BlockSpawner : MonoBehaviour
                         if (count >= 300) break;
                     }
                 }
+            }
         }
 
         if (placements.Count < 3)
@@ -248,4 +241,41 @@ public class BlockSpawner : MonoBehaviour
         Shuffle(colors);
         return colors.Take(n).ToList();
     }
+
+    public static bool ShouldUseAdvanced(DataGrid grid)
+    {
+        int filled = 0;
+        int total = grid.Width * grid.Height;
+
+        for (int x = 0; x < grid.Width; x++)
+            for (int y = 0; y < grid.Height; y++)
+                if (grid.Cells[x, y] != null)
+                    filled++;
+
+        float filledRatio = (float)filled / total;
+
+        // Nếu lấp đầy hơn 80% -> gần thua -> ưu tiên dùng advanced để cứu
+        if (filledRatio > 0.8f)
+            return true;
+
+        // Nếu bất kỳ hàng/cột nào chỉ còn thiếu 1 ô => nên dùng advanced để tạo combo ăn
+        for (int y = 0; y < grid.Height; y++)
+        {
+            int empty = 0;
+            for (int x = 0; x < grid.Width; x++)
+                if (grid.Cells[x, y] == null) empty++;
+            if (empty == 1) return true;
+        }
+
+        for (int x = 0; x < grid.Width; x++)
+        {
+            int empty = 0;
+            for (int y = 0; y < grid.Height; y++)
+                if (grid.Cells[x, y] == null) empty++;
+            if (empty == 1) return true;
+        }
+
+        return false;
+    }
 }
+
